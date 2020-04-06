@@ -1,7 +1,9 @@
 package com.canhtoan.beatbox
 
+import android.os.Build
 import android.os.Bundle
 import android.view.ViewGroup
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.GridLayoutManager
@@ -12,6 +14,7 @@ import com.canhtoan.beatbox.databinding.ListItemSoundBinding
 class MainActivity : AppCompatActivity() {
     private lateinit var beatBox: BeatBox
 
+    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -20,13 +23,30 @@ class MainActivity : AppCompatActivity() {
         val binding: ActivityMainBinding =
             DataBindingUtil.setContentView(this, R.layout.activity_main)
         binding.recyclerView.apply {
-            layoutManager = GridLayoutManager(context, 3)
+            layoutManager = GridLayoutManager(context, 3) as RecyclerView.LayoutManager?
             adapter = SoundAdapter(beatBox.sounds)
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
+    override fun onDestroy() {
+        super.onDestroy()
+        beatBox.release()
+    }
+
     private inner class SoundHolder(private val binding: ListItemSoundBinding) :
-        RecyclerView.ViewHolder(binding.root) {}
+        RecyclerView.ViewHolder(binding.root) {
+        init {
+            binding.viewModel = SoundViewModel(beatBox)
+        }
+
+        fun bind(sound: Sound) {
+            binding.apply {
+                viewModel?.sound = sound
+                executePendingBindings()
+            }
+        }
+    }
 
     private inner class SoundAdapter(private val sounds: List<Sound>) : RecyclerView.Adapter<SoundHolder>() {
 
@@ -44,7 +64,8 @@ class MainActivity : AppCompatActivity() {
         override fun getItemCount() = sounds.size
 
         override fun onBindViewHolder(holder: SoundHolder, position: Int) {
-
+            val sound = sounds[position]
+            holder.bind(sound)
         }
 
     }
