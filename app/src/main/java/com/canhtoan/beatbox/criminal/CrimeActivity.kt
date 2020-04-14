@@ -3,8 +3,12 @@ package com.canhtoan.beatbox.criminal
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.canhtoan.beatbox.R
+import java.util.*
 
-class CrimeActivity : AppCompatActivity() {
+private const val TAG = "CrimeActivity"
+
+class CrimeActivity : AppCompatActivity(), CrimeListFragment.Callbacks {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_crime)
@@ -16,5 +20,14 @@ class CrimeActivity : AppCompatActivity() {
                  .add(R.id.fragment_container, fragment)
                  .commit()
          }
+    }
+
+    override fun onCrimeSelected(crimeId: UUID) {
+        val fragment = CrimeFragment.newInstance(crimeId)
+        supportFragmentManager
+            .beginTransaction()
+            .replace(R.id.fragment_container, fragment)
+            .addToBackStack(null)
+            .commit()
     }
 }
