@@ -2,6 +2,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.canhtoan.beatbox">
 
+    <uses-feature
+        android:name="android.hardware.camera2"
+        android:required="false" />
+
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:name=".criminal.CriminalIntentApplication"
         android:allowBackup="true"
@@ -11,13 +17,14 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity android:name=".CheatActivity" />
-        <activity android:name=".criminal.CrimeActivity">
+        <activity android:name=".photogallery.PhotoGalleryActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".criminal.CrimeActivity" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

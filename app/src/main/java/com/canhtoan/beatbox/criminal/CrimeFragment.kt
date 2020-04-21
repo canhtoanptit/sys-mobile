@@ -14,9 +14,7 @@ import android.text.format.DateFormat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.CheckBox
-import android.widget.EditText
+import android.widget.*
 import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
@@ -42,8 +40,8 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks {
     private lateinit var solvedCheckBox: CheckBox
     private lateinit var reportButton: Button
     private lateinit var suspectButton: Button
-    private lateinit var photoButton: Button
-    private lateinit var photoView: View
+    private lateinit var photoButton: ImageButton
+    private lateinit var photoView: ImageView
     private val crimeDetailViewModel: CrimeDetailViewModel by lazy {
         ViewModelProvider(this).get(CrimeDetailViewModel::class.java)
     }
@@ -67,8 +65,8 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks {
         solvedCheckBox = view.findViewById(R.id.crime_solved) as CheckBox
         reportButton = view.findViewById(R.id.crime_report) as Button
         suspectButton = view.findViewById(R.id.crime_suspect) as Button
-        photoButton = view.findViewById(R.id.crime_camera)
-        photoView = view.findViewById(R.id.crime_photo)
+        photoButton = view.findViewById(R.id.crime_camera) as ImageButton
+        photoView = view.findViewById(R.id.crime_photo) as ImageView
 
         return view
     }
@@ -82,7 +80,7 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks {
                     photoFile = crimeDetailViewModel.getPhotoFile(crime)
                     photoUri = FileProvider.getUriForFile(
                         requireActivity(),
-                        "com.canhtoan.beatbox.criminalintent.fileprovider",
+                        "com.canhtoan.beatbox.criminal.fileprovider",
                         photoFile
                     )
                     updateUI()
@@ -183,6 +181,14 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks {
         crimeDetailViewModel.saveCrime(crime)
     }
 
+    override fun onDetach() {
+        super.onDetach()
+        requireActivity().revokeUriPermission(
+            photoUri,
+            Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+        )
+    }
+
     private fun updateUI() {
         titleField.setText(crime.title)
         dateButton.text = crime.date.toString()
@@ -192,6 +198,16 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks {
         }
         if (crime.suspect.isNotEmpty()) {
             suspectButton.text = crime.suspect
+        }
+        updatePhotoView()
+    }
+
+    private fun updatePhotoView() {
+        if (photoFile.exists()) {
+            val bitmap = getScaledBitmap(photoFile.path, requireActivity())
+            photoView.setImageBitmap(bitmap)
+        } else {
+            photoView.setImageDrawable(null)
         }
     }
 
@@ -222,6 +238,14 @@ class CrimeFragment : Fragment(), DatePickerFragment.Callbacks {
                     suspectButton.text = suspect
                 }
 
+            }
+
+            requestCode == REQUEST_PHOTO -> {
+                requireActivity().revokeUriPermission(
+                    photoUri,
+                    Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                )
+                updatePhotoView()
             }
         }
     }
