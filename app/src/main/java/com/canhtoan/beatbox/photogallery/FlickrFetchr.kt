@@ -7,6 +7,8 @@ import androidx.annotation.WorkerThread
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.canhtoan.beatbox.api.FlickApi
+import com.canhtoan.beatbox.api.PhotoInterceptor
+import okhttp3.OkHttpClient
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
@@ -21,17 +23,37 @@ class FlickrFetchr {
     private val flickApi: FlickApi
 
     init {
+        val client = OkHttpClient.Builder()
+            .addInterceptor(PhotoInterceptor())
+            .build()
+
         val retrofit = Retrofit.Builder()
             .baseUrl("https://api.flickr.com/")
             .addConverterFactory(GsonConverterFactory.create())
+            .client(client)
             .build()
 
         flickApi = retrofit.create(FlickApi::class.java)
     }
 
+    fun fetchPhotosRequest(): Call<FlickResponse> {
+        return flickApi.fetchPhotos()
+    }
+
     fun fetchPhotos(): LiveData<List<GalleryItem>> {
+        return fetchPhotoMetadata(fetchPhotosRequest())
+    }
+
+    fun searchPhotosRequest(query: String): Call<FlickResponse> {
+        return flickApi.searchPhotos(query)
+    }
+
+    fun searchPhotos(query: String): LiveData<List<GalleryItem>> {
+        return fetchPhotoMetadata(searchPhotosRequest(query))
+    }
+
+    private fun fetchPhotoMetadata(flickRequest: Call<FlickResponse>): LiveData<List<GalleryItem>> {
         val responseLiveData: MutableLiveData<List<GalleryItem>> = MutableLiveData()
-        val flickRequest = flickApi.fetchPhotos()
 
         flickRequest.enqueue(object : Callback<FlickResponse> {
             override fun onFailure(call: Call<FlickResponse>, t: Throwable) {
